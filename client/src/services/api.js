@@ -10,11 +10,14 @@ let API_BASE = import.meta.env.VITE_API_URL || '/api';
 // Handle protocol-less Render URLs or internal service names
 if (API_BASE !== '/api') {
     if (!API_BASE.startsWith('http')) {
-        // If it looks like a Render service name (no dot), it might be wrong for client-side
+        // If it looks like a Render service name (no dots), append .onrender.com
         if (!API_BASE.includes('.')) {
-            console.error('CRITICAL: API_URL appears to be an internal service name ("' + API_BASE + '") which cannot be resolved from the browser. You must set VITE_API_URL to the full public URL (e.g. https://your-app.onrender.com).');
+            console.warn(`Auto-correcting Render service name: "${API_BASE}" -> "${API_BASE}.onrender.com"`);
+            API_BASE = `https://${API_BASE}.onrender.com`;
+        } else {
+            // Has dots, just prepend https://
+            API_BASE = `https://${API_BASE}`;
         }
-        API_BASE = `https://${API_BASE}`;
     }
 }
 
