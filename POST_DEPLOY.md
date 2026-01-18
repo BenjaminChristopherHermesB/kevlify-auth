@@ -151,11 +151,7 @@ You will create two services on [Render](https://dashboard.render.com): one for 
      - **Value**: `https://kevlify-backend.onrender.com` (your actual backend URL)
    - Save and redeploy.
    
-   **Then update your frontend code** (`client/src` files that make API calls) to use:
-   ```javascript
-   const API_URL = import.meta.env.VITE_API_URL || '';
-   // Use: fetch(`${API_URL}/api/auth/login`, ...)
-   ```
+   > ✅ **Note**: Your frontend code (`client/src/services/api.js`) is already configured to use this variable. No code changes needed!
    
    **Option B: Vite Proxy (Alternative)**
    - This requires adding `vite.config.js` proxy configuration:

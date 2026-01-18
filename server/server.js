@@ -53,12 +53,12 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/admin', adminRoutes);
 
-if (isProduction) {
-    app.use(express.static(path.join(__dirname, '../client/dist')));
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-    });
-}
+// if (isProduction) {
+//     app.use(express.static(path.join(__dirname, '../client/dist')));
+//     app.get('*', (req, res) => {
+//         res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+//     });
+// }
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
