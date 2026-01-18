@@ -19,6 +19,12 @@ if (API_BASE !== '/api') {
             API_BASE = `https://${API_BASE}`;
         }
     }
+
+    // Ensure it ends with /api
+    if (!API_BASE.endsWith('/api')) {
+        API_BASE = `${API_BASE}/api`;
+        console.warn('Appended /api to API_BASE:', API_BASE);
+    }
 }
 
 console.log('Final API_BASE:', API_BASE);
