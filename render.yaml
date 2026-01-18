@@ -4,7 +4,8 @@ services:
     name: kevlify-backend
     env: node
     plan: free
-    region: singapore
+    plan: free
+    rootDir: server
     rootDir: server
     buildCommand: npm install
     startCommand: npm start
