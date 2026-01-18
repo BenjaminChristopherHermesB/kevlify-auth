@@ -1,0 +1,29 @@
+{
+  "name": "kevlify-authenticator",
+  "version": "1.0.0",
+  "description": "Secure 2FA authenticator for the web with client-side encryption",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "node server/server.js",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [
+    "2fa",
+    "totp",
+    "hotp",
+    "authenticator",
+    "security"
+  ],
+  "author": "Kevlify",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "concurrently": "^8.2.2"
+  }
+}
