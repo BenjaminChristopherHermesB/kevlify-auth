@@ -139,17 +139,46 @@ You will create two services on [Render](https://dashboard.render.com): one for 
    - Edit `CORS_ORIGINS` to match your actual frontend URL (e.g., `https://kevlify-client.onrender.com`).
    - Saving triggers a redeploy.
 
-2. **Configure Frontend Rewrite** (To make API calls work):
+2. **Configure Frontend Proxy** (Critical - API calls won't work without this):
+   
+   > **Important**: You MUST configure the frontend to proxy API requests to the backend.
+   
+   **Option A: Environment Variable (Recommended)**
+   - Go to `kevlify-client` on Render dashboard.
+   - Go to **Environment** tab.
+   - Add this variable:
+     - **Key**: `VITE_API_URL`
+     - **Value**: `https://kevlify-backend.onrender.com` (your actual backend URL)
+   - Save and redeploy.
+   
+   **Then update your frontend code** (`client/src` files that make API calls) to use:
+   ```javascript
+   const API_URL = import.meta.env.VITE_API_URL || '';
+   // Use: fetch(`${API_URL}/api/auth/login`, ...)
+   ```
+   
+   **Option B: Vite Proxy (Alternative)**
+   - This requires adding `vite.config.js` proxy configuration:
+   ```javascript
+   export default {
+     server: {
+       proxy: {
+         '/api': {
+           target: 'https://kevlify-backend.onrender.com',
+           changeOrigin: true
+         }
+       }
+     }
+   }
+   ```
+   
+   **For SPA Routing** (to fix "404 on refresh"):
    - Go to `kevlify-client` on Render.
-   - Go to **Redirects/Rewrites**.
-   - Add new rule:
-     - **Source**: `/api/*`
-     - **Destination**: `https://kevlify-backend.onrender.com/api/:splat` (Use your actual backend URL)
-     - **Status**: `200` Rewrite
-   - Add another rule for SPA routing:
+   - Go to **Redirects/Rewrites** tab.
+   - Add this rule:
      - **Source**: `/*`
      - **Destination**: `/index.html`
-     - **Status**: `200` Rewrite
+     - **Action**: `Rewrite`
 
 ### 3.2 Update Google OAuth
 
