@@ -6,16 +6,16 @@ const router = express.Router();
 router.use(requireAuth);
 router.use(requireRole('admin'));
 
-router.get('/users', (req, res) => {
+router.get('/users', async (req, res) => {
     try {
-        const users = prepare(`
+        const users = await prepare(`
       SELECT id, email, role, created_at FROM users ORDER BY created_at DESC
     `).all();
 
-        const usersWithCounts = users.map(user => {
-            const countResult = prepare('SELECT COUNT(*) as count FROM accounts WHERE user_id = ?').get(user.id);
+        const usersWithCounts = await Promise.all(users.map(async user => {
+            const countResult = await prepare('SELECT COUNT(*) as count FROM accounts WHERE user_id = ?').get(user.id);
             return { ...user, account_count: countResult?.count || 0 };
-        });
+        }));
 
         res.json({ users: usersWithCounts });
     } catch (error) {
@@ -24,7 +24,7 @@ router.get('/users', (req, res) => {
     }
 });
 
-router.put('/users/:id/role', (req, res) => {
+router.put('/users/:id/role', async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
@@ -37,7 +37,7 @@ router.put('/users/:id/role', (req, res) => {
     }
 
     try {
-        const result = prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
+        const result = await prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
         if (result.changes === 0) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -48,7 +48,7 @@ router.put('/users/:id/role', (req, res) => {
     }
 });
 
-router.delete('/users/:id', (req, res) => {
+router.delete('/users/:id', async (req, res) => {
     const { id } = req.params;
 
     if (parseInt(id) === req.session.userId) {
@@ -56,7 +56,7 @@ router.delete('/users/:id', (req, res) => {
     }
 
     try {
-        const result = prepare('DELETE FROM users WHERE id = ?').run(id);
+        const result = await prepare('DELETE FROM users WHERE id = ?').run(id);
         if (result.changes === 0) {
             return res.status(404).json({ error: 'User not found' });
         }

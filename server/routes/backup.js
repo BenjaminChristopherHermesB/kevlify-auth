@@ -5,10 +5,10 @@ const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireAuth);
 
-router.get('/export', (req, res) => {
+router.get('/export', async (req, res) => {
     try {
-        const accounts = prepare('SELECT * FROM accounts WHERE user_id = ? ORDER BY ranking ASC').all(req.session.userId);
-        const categories = prepare('SELECT * FROM categories WHERE user_id = ? ORDER BY ranking ASC').all(req.session.userId);
+        const accounts = await prepare('SELECT * FROM accounts WHERE user_id = ? ORDER BY ranking ASC').all(req.session.userId);
+        const categories = await prepare('SELECT * FROM categories WHERE user_id = ? ORDER BY ranking ASC').all(req.session.userId);
 
         const backup = {
             version: '1.0',
@@ -42,7 +42,7 @@ router.get('/export', (req, res) => {
     }
 });
 
-router.post('/import', (req, res) => {
+router.post('/import', async (req, res) => {
     const { backup, replaceExisting } = req.body;
 
     if (!backup || !backup.authenticators) {
@@ -51,14 +51,14 @@ router.post('/import', (req, res) => {
 
     try {
         if (replaceExisting) {
-            prepare('DELETE FROM accounts WHERE user_id = ?').run(req.session.userId);
-            prepare('DELETE FROM categories WHERE user_id = ?').run(req.session.userId);
+            await prepare('DELETE FROM accounts WHERE user_id = ?').run(req.session.userId);
+            await prepare('DELETE FROM categories WHERE user_id = ?').run(req.session.userId);
         }
 
         if (backup.categories) {
             for (const cat of backup.categories) {
                 try {
-                    prepare(`INSERT OR IGNORE INTO categories (id, user_id, name, ranking) VALUES (?, ?, ?, ?)`).run(cat.id, req.session.userId, cat.name, cat.ranking || 0);
+                    await prepare(`INSERT OR IGNORE INTO categories (id, user_id, name, ranking) VALUES (?, ?, ?, ?)`).run(cat.id, req.session.userId, cat.name, cat.ranking || 0);
                 } catch (e) {
                     console.log('Category insert skipped:', e.message);
                 }
@@ -67,7 +67,7 @@ router.post('/import', (req, res) => {
 
         let importedCount = 0;
         for (const auth of backup.authenticators) {
-            prepare(`
+            await prepare(`
         INSERT INTO accounts (user_id, type, issuer, username, secret_encrypted, algorithm, digits, period, counter, icon, category_id, ranking)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(

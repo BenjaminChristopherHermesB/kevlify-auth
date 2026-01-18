@@ -6,9 +6,9 @@ const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireAuth);
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const accounts = prepare(`
+        const accounts = await prepare(`
       SELECT * FROM accounts WHERE user_id = ? ORDER BY ranking ASC, created_at DESC
     `).all(req.session.userId);
         res.json({ accounts });
@@ -26,7 +26,7 @@ router.post('/', [
     body('digits').optional().isInt({ min: 6, max: 10 }),
     body('period').optional().isInt({ min: 1 }),
     body('counter').optional().isInt({ min: 0 })
-], (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -46,10 +46,10 @@ router.post('/', [
     } = req.body;
 
     try {
-        const maxRanking = prepare('SELECT MAX(ranking) as max FROM accounts WHERE user_id = ?').get(req.session.userId);
+        const maxRanking = await prepare('SELECT MAX(ranking) as max FROM accounts WHERE user_id = ?').get(req.session.userId);
         const ranking = (maxRanking?.max || 0) + 1;
 
-        const result = prepare(`
+        const result = await prepare(`
       INSERT INTO accounts (user_id, issuer, username, secret_encrypted, type, algorithm, digits, period, counter, icon, category_id, ranking)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
@@ -67,12 +67,12 @@ router.post('/', [
             ranking
         );
 
-        let account = prepare('SELECT * FROM accounts WHERE id = ?').get(result.lastInsertRowid);
+        let account = await prepare('SELECT * FROM accounts WHERE id = ?').get(result.lastInsertRowid);
 
         if (!account) {
             // Fallback: fetch the most recently created account for this user
             // This handles cases where lastInsertRowid might not be reliable
-            account = prepare('SELECT * FROM accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(req.session.userId);
+            account = await prepare('SELECT * FROM accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(req.session.userId);
         }
 
         if (!account) {
@@ -88,7 +88,7 @@ router.post('/', [
 
 router.put('/:id', [
     param('id').isInt()
-], (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -98,7 +98,7 @@ router.put('/:id', [
     const updates = req.body;
 
     try {
-        const account = prepare('SELECT * FROM accounts WHERE id = ? AND user_id = ?').get(id, req.session.userId);
+        const account = await prepare('SELECT * FROM accounts WHERE id = ? AND user_id = ?').get(id, req.session.userId);
         if (!account) {
             return res.status(404).json({ error: 'Account not found' });
         }
@@ -119,9 +119,9 @@ router.put('/:id', [
         }
 
         values.push(id, req.session.userId);
-        prepare(`UPDATE accounts SET ${setClauses.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
+        await prepare(`UPDATE accounts SET ${setClauses.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
 
-        const updatedAccount = prepare('SELECT * FROM accounts WHERE id = ?').get(id);
+        const updatedAccount = await prepare('SELECT * FROM accounts WHERE id = ?').get(id);
         res.json({ account: updatedAccount });
     } catch (error) {
         console.error('Update account error:', error);
@@ -131,7 +131,7 @@ router.put('/:id', [
 
 router.delete('/:id', [
     param('id').isInt()
-], (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -140,7 +140,7 @@ router.delete('/:id', [
     const { id } = req.params;
 
     try {
-        const result = prepare('DELETE FROM accounts WHERE id = ? AND user_id = ?').run(id, req.session.userId);
+        const result = await prepare('DELETE FROM accounts WHERE id = ? AND user_id = ?').run(id, req.session.userId);
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Account not found' });
         }

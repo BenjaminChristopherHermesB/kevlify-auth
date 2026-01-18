@@ -21,10 +21,10 @@ router.post('/google', async (req, res) => {
             return res.status(400).json({ error: 'Email not provided by Google' });
         }
 
-        let user = prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
+        let user = await prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
 
         if (!user) {
-            user = prepare('SELECT * FROM users WHERE email = ? AND oauth_provider = ?').get(email, 'local');
+            user = await prepare('SELECT * FROM users WHERE email = ? AND oauth_provider = ?').get(email, 'local');
 
             if (user) {
                 return res.status(400).json({
@@ -32,7 +32,7 @@ router.post('/google', async (req, res) => {
                 });
             }
 
-            const result = prepare(`
+            const result = await prepare(`
                 INSERT INTO users (email, oauth_provider, google_id, role) 
                 VALUES (?, 'google', ?, 'user')
             `).run(email, googleId);

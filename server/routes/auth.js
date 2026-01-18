@@ -18,13 +18,13 @@ router.post('/register', [
     const { email, password } = req.body;
 
     try {
-        const existingUser = prepare('SELECT id FROM users WHERE email = ?').get(email);
+        const existingUser = await prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (existingUser) {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
-        const result = prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(email, passwordHash);
+        const result = await prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(email, passwordHash);
 
         req.session.userId = result.lastInsertRowid;
         req.session.email = email;
@@ -52,7 +52,7 @@ router.post('/login', [
     const { email, password } = req.body;
 
     try {
-        const user = prepare('SELECT * FROM users WHERE email = ?').get(email);
+        const user = await prepare('SELECT * FROM users WHERE email = ?').get(email);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -86,12 +86,17 @@ router.post('/logout', (req, res) => {
     });
 });
 
-router.get('/me', requireAuth, (req, res) => {
-    const user = prepare('SELECT id, email, role, created_at FROM users WHERE id = ?').get(req.session.userId);
-    if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+router.get('/me', requireAuth, async (req, res) => {
+    try {
+        const user = await prepare('SELECT id, email, role, created_at FROM users WHERE id = ?').get(req.session.userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({ user });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Server error' });
     }
-    res.json({ user });
 });
 
 module.exports = router;

@@ -69,7 +69,7 @@ You will create two services on [Render](https://dashboard.render.com): one for 
 2. Select **Build and deploy from a Git repository**.
 3. Connect your GitHub account and select `kevlify-auth`.
 4. **Configure Service**:
-   - **Name**: `kevlify-backend`
+   - **Name**: `kevlify-backend`.
    - **Region**: Closest to you (e.g., Oregon, Frankfurt).
    - **Branch**: `main`
    - **Root Directory**: `server` (Important!)
@@ -78,23 +78,34 @@ You will create two services on [Render](https://dashboard.render.com): one for 
    - **Start Command**: `npm start`
    - **Instance Type**: Free (or Starter).
 
-5. **Environment Variables** (Advanced -> Add Environment Variable):
+6. **Database Setup (Free)**:
+   > **Note**: Render's "Persistent Disk" is a paid feature. To keep this free, we will use a **free external database provider**.
+
+   **Option A: Neon (Recommended)**
+   1. Go to [Neon.tech](https://neon.tech) and sign up (Free).
+   2. Create a new project.
+   3. Copy the **Connection String** (Postgres URL).
+   
+   **Option B: Supabase**
+   1. Go to [Supabase.com](https://supabase.com) and sign up (Free).
+   2. Create a new project.
+   3. Go to Settings -> Database -> Connection String -> URI.
+   4. Copy the connection string.
+
+   **Configure Environment Variables in Render**:
+   Add these variables to your Backend Web Service:
+
    | Key | Value |
    |-----|-------|
+   | `DATABASE_URL` | *Paste your connection string from Neon/Supabase* |
    | `NODE_ENV` | `production` |
    | `PORT` | `3001` |
-   | `SESSION_SECRET` | *Generate a random string (e.g. `openssl rand -base64 32`)* |
-   | `DATABASE_PATH` | `./data/kevlify.db` |
-   | `CORS_ORIGINS` | `https://kevlify-client.onrender.com` (Update after deploying frontend) |
+   | `SESSION_SECRET` | *Generate a random string* |
+   | `CORS_ORIGINS` | `https://kevlify-client.onrender.com` |
    | `GOOGLE_CLIENT_ID` | *From your client_secret.json* |
    | `GOOGLE_CLIENT_SECRET` | *From your client_secret.json* |
 
-6. **Persistent Disk** (Crucial for Database):
-   - Scroll to **Disks**.
-   - Click **Add Disk**.
-   - **Name**: `kevlify-db`
-   - **Mount Path**: `/opt/render/project/src/server/data`
-   - **Size**: 1 GB.
+   **Remove** `DATABASE_PATH` variable (it's only for local dev).
 
 7. Click **Create Web Service**.
 
@@ -176,7 +187,9 @@ When you or your collaborator want to update the app:
 
 ### 💾 Backups
 
-- **Database**: The SQLite DB is on the persistent disk. It survives redeployments.
+### 💾 Backups
+
+- **Database**: Your database is hosted on Neon/Supabase (Free Tier). It is persistent and safe. Use their dashboards for backups.
 - **Manual Backup**: Use the "Export Encrypted Backup" feature in the app regularly.
 
 ### 🐛 Troubleshooting
@@ -184,7 +197,7 @@ When you or your collaborator want to update the app:
 - **"Not Found" on Refresh**: Ensure the `/*` -> `/index.html` rewrite rule is set on the Frontend.
 - **CORS Error**: Check `CORS_ORIGINS` in Backend env vars matches Frontend URL *exactly* (no trailing slash).
 - **Google "Invalid Client"**: Check Google Console authorized origins and `VITE_GOOGLE_CLIENT_ID`.
-- **Database Resetting**: Ensure Persistent Disk is mounted at `/opt/render/project/src/server/data`.
+- **Database Resetting**: Ensure you have set `DATABASE_URL` in environment variables. If missing, the app defaults to an ephemeral SQLite DB which wipes on deploy.
 
 ---
 
