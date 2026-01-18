@@ -19,28 +19,24 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
-const corsOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(origin => {
-        let cleanOrigin = origin.trim();
-        // Remove trailing slash if present
-        if (cleanOrigin.endsWith('/')) {
-            cleanOrigin = cleanOrigin.slice(0, -1);
-        }
-        // Ensure protocol
-        if (!cleanOrigin.startsWith('http')) {
-            cleanOrigin = `https://${cleanOrigin}`;
-        }
-        return cleanOrigin;
-    })
-    : ['http://localhost:5173'];
+// CORS Configuration
+// Allow localhost (any port) and any Render.com subdomain
+const allowedOrigins = [
+    /^http:\/\/localhost:\d+$/,
+    /^https:\/\/.*\.onrender\.com$/
+];
 
-console.log('CORS Configuration:', {
-    allowedOrigins: corsOrigins,
-    envValue: process.env.CORS_ORIGINS
-});
+// If specific origins are provided in env, add them too (for custom domains)
+if (process.env.CORS_ORIGINS) {
+    process.env.CORS_ORIGINS.split(',').forEach(origin => {
+        allowedOrigins.push(origin.trim());
+    });
+}
+
+console.log('CORS Configured with Regex Patterns for *.onrender.com and localhost');
 
 app.use(cors({
-    origin: corsOrigins,
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
