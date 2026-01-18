@@ -20,7 +20,9 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
 const corsOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',')
+    ? process.env.CORS_ORIGINS.split(',').map(origin =>
+        origin.startsWith('http') ? origin : `https://${origin}`
+    )
     : ['http://localhost:5173'];
 app.use(cors({
     origin: corsOrigins,
