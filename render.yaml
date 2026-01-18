@@ -4,7 +4,7 @@ services:
     name: kevlify-backend
     env: node
     plan: free
-    region: singapore # or oregon, frankfurt
+    region: singapore
     rootDir: server
     buildCommand: npm install
     startCommand: npm start
@@ -14,7 +14,7 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        sync: false # User must provide this (Neon/Supabase)
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: GOOGLE_CLIENT_ID
@@ -23,17 +23,17 @@ services:
         sync: false
       - key: CORS_ORIGINS
         fromService:
-          type: static      # Changed from 'site' to 'static' although for fromService 'site' might be valid, but let's check. 
-                            # Actually, when referencing a static site, type is 'static'. 
+          type: web
           name: kevlify-client
           property: url
 
-staticSites:
   # FRONTEND SERVICE (Free Static Site)
-  - name: kevlify-client
+  - type: web
+    name: kevlify-client
+    env: static
     rootDir: client
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
