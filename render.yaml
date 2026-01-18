@@ -23,13 +23,14 @@ services:
         sync: false
       - key: CORS_ORIGINS
         fromService:
-          type: site
+          type: static      # Changed from 'site' to 'static' although for fromService 'site' might be valid, but let's check. 
+                            # Actually, when referencing a static site, type is 'static'. 
           name: kevlify-client
           property: url
 
+staticSites:
   # FRONTEND SERVICE (Free Static Site)
-  - type: site
-    name: kevlify-client
+  - name: kevlify-client
     rootDir: client
     buildCommand: npm install && npm run build
     publishDir: dist
