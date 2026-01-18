@@ -20,27 +20,46 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
 // CORS Configuration
-// Allow localhost (any port) and any Render.com subdomain
 const allowedOrigins = [
     /^http:\/\/localhost:\d+$/,
     /^https:\/\/.*\.onrender\.com$/
 ];
 
-// If specific origins are provided in env, add them too (for custom domains)
+// Add manual env vars if present
 if (process.env.CORS_ORIGINS) {
     process.env.CORS_ORIGINS.split(',').forEach(origin => {
         allowedOrigins.push(origin.trim());
     });
 }
 
-console.log('CORS Configured with Regex Patterns for *.onrender.com and localhost');
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
 
-app.use(cors({
-    origin: allowedOrigins,
+        // Check against allowed origins
+        const isAllowed = allowedOrigins.some(allowedOrigin => {
+            if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin.test(origin);
+            }
+            return allowedOrigin === origin;
+        });
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.log(`[CORS BLOCKED] Origin: ${origin} is not allowed`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
-}));
+};
+
+console.log('CORS Configured with custom logging function');
+
+app.use(cors(corsOptions));
 
 app.use(helmet({
     contentSecurityPolicy: isProduction ? undefined : false
