@@ -20,13 +20,30 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
 const corsOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(origin =>
-        origin.startsWith('http') ? origin : `https://${origin}`
-    )
+    ? process.env.CORS_ORIGINS.split(',').map(origin => {
+        let cleanOrigin = origin.trim();
+        // Remove trailing slash if present
+        if (cleanOrigin.endsWith('/')) {
+            cleanOrigin = cleanOrigin.slice(0, -1);
+        }
+        // Ensure protocol
+        if (!cleanOrigin.startsWith('http')) {
+            cleanOrigin = `https://${cleanOrigin}`;
+        }
+        return cleanOrigin;
+    })
     : ['http://localhost:5173'];
+
+console.log('CORS Configuration:', {
+    allowedOrigins: corsOrigins,
+    envValue: process.env.CORS_ORIGINS
+});
+
 app.use(cors({
     origin: corsOrigins,
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 app.use(helmet({
