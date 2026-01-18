@@ -68,14 +68,18 @@ app.use(helmet({
 app.use(morgan(isProduction ? 'combined' : 'dev'));
 app.use(express.json());
 
+// Trust Render's proxy to correctly identify protocol (required for secure cookies)
+app.set('trust proxy', 1);
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: isProduction,
+        secure: isProduction, // Must be true for SameSite=None
         httpOnly: true,
-        sameSite: 'lax',
+        // different domains (frontend/backend) require 'none' for cross-site cookies
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
