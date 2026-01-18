@@ -46,4 +46,6 @@ logs/
 # Playwright
 test-results/
 playwright-report/
-playwright/.cache/
+
+# Render Secrets File
+SECRETS_FOR_RENDER.txt

@@ -41,7 +41,4 @@ services:
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: kevlify-backend
-          property: url
+        sync: false
