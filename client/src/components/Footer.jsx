@@ -14,7 +14,7 @@ function Footer() {
                 <nav className="footer-links" aria-label="Footer navigation">
                     <Link to="/about">About</Link>
                     <Link to="/contact">Contact</Link>
-                    <a href="https://github.com/kevlify/authenticator" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://github.com/BenjaminChristopherHermesB/kevlify-auth" target="_blank" rel="noopener noreferrer">GitHub</a>
                 </nav>
                 <p className="footer-copyright">
                     Copyright &copy;{year}, All rights reserved.
